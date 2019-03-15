@@ -19,8 +19,10 @@ class CfbDecklistScraperPipeline(object):
 
     def _append_row(self, deck: Deck, card_name, num, is_sideboard):
         row = {
-            'builder_name': deck['builder_name'],
+            'player_name': deck['player_name'],
             'archetype': deck['archetype'],
+            'rank': deck['rank'],
+            'point': deck['point'],
             'card_name': card_name,
             'num': num,
             'is_sideboard': is_sideboard,

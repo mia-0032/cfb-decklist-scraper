@@ -9,7 +9,7 @@ import scrapy
 
 
 class Deck(scrapy.Item):
-    builder_name = scrapy.Field()
+    player_name = scrapy.Field()
     rank = scrapy.Field()
     point = scrapy.Field()
     archetype = scrapy.Field()

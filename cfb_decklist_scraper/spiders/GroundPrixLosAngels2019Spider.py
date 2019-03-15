@@ -11,9 +11,18 @@ from cfb_decklist_scraper.items import Deck
 class GroundPrixLosAngels2019Spider(scrapy.Spider):
     name = 'ground_prix_los_angels_2019'
 
+    PLAYER_NAME_MAPPING = {
+        # cfb decklist => standings
+        'Jay Trojan': 'Joseph Trojan',
+        'Franky Rodriguez': 'Francisco Rodriguez',
+        'Dan Besterman': 'Daniel Besterman',
+    }
+
     def start_requests(self):
         urls = [
             'https://magic.wizards.com/en/events/coverage/gplosangeles19/final-standings',
+            'https://www.channelfireball.com/grand-prix-los-angeles-top-8-decklists/',
+            'https://www.channelfireball.com/grand-prix-los-angeles-top-32-deck-lists/',
             'https://www.channelfireball.com/grand-prix-los-angeles-day-2-deck-lists/',
         ]
 
@@ -46,7 +55,7 @@ class GroundPrixLosAngels2019Spider(scrapy.Spider):
 
             name = re.sub(r'\s+\[[A-Z]+\]$', '', name).split(', ')
             name.reverse()
-            name = ' '.join(name)
+            name = ' '.join(name).title()
 
             self._standings[name] = {'rank': rank, 'point': point}
 
@@ -58,28 +67,35 @@ class GroundPrixLosAngels2019Spider(scrapy.Spider):
         self._not_found_players = []
 
         for builder in builders:
-            builder_name = builder.get_text()
+            player_name = builder.get_text().title()
 
-            if builder_name in ['', 'Discussion']:
+            if player_name in ['', 'Discussion']:
                 continue
 
+            if player_name in self.PLAYER_NAME_MAPPING:
+                player_name = self.PLAYER_NAME_MAPPING[player_name]
+
             deck_content = builder.find_next('div').find('div', class_='plain-text-decklist').find('pre').get_text()
-            maindeck, sideboard = deck_content.split('Sideboard', 1)
+
+            deck_contents = deck_content.split('Sideboard', 1)
+            maindeck = deck_contents[0]
+            sideboard = deck_contents[1] if len(deck_contents) == 2 else ''
 
             maindeck = [l.split(' ', 1) for l in maindeck.strip().split('\r\n')]
             maindeck = {l[1]: int(l[0]) for l in maindeck}
 
-            sideboard = [l.split(' ', 1) for l in sideboard.strip().split('\r\n')]
+            # sideboard may be empty
+            sideboard = [l.split(' ', 1) for l in [x for x in sideboard.strip().split('\r\n') if x]]
             sideboard = {l[1]: int(l[0]) for l in sideboard}
 
             archetype = None
-            standing = self._standings.get(builder_name, {'rank': None, 'point': None})
+            standing = self._standings.get(player_name, {'rank': None, 'point': None})
 
-            if builder_name not in self._standings:
-                self._not_found_players.append(builder_name)
+            if player_name not in self._standings:
+                self._not_found_players.append(player_name)
 
             yield Deck(
-                builder_name=builder_name, rank=standing['rank'], point=standing['point'],
+                player_name=player_name, rank=standing['rank'], point=standing['point'],
                 archetype=archetype, maindeck=maindeck, sideboard=sideboard
             )
 
