@@ -8,10 +8,19 @@
 import scrapy
 
 
-class Deck(scrapy.Item):
-    player_name = scrapy.Field()
+class Standing(scrapy.Item):
+    player = scrapy.Field()
     rank = scrapy.Field()
     point = scrapy.Field()
+
+
+class Deck(scrapy.Item):
+    player = scrapy.Field()
     archetype = scrapy.Field()
     maindeck = scrapy.Field()
     sideboard = scrapy.Field()
+
+
+class MatchResult(scrapy.Item):
+    win_player = scrapy.Field()
+    lose_player = scrapy.Field()
