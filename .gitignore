@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# created files
+standing.json
+archetype.json
+decklist.json
+match_result.json
